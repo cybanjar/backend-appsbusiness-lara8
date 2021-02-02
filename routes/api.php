@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controller\PostController;
+namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,16 +20,12 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/posts', [PostController::class, 'index']);
-Route::post('/post', [PostController::class, 'store']);
-Route::post('/post/{id}', [PostController::class, 'show']);
-Route::put('/post/{id}', [PostController::class, 'update']);
-Route::delete('/post/{id}', [PostController::class, 'destroy']);
+Route::post('/register', [UserController::class, 'register']);
+Route::post('/login', [UserController::class, 'login']);
+Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:api');
 
-// Route::get('/users/{name?}', function($name = null) {
-//     return 'Hi ' . $name;
-// });
-
-// Route::get('/products/{id?}', function($id = null) {
-//     return 'Product is ' . $id;
-// })->where('id', '[0-9]+');
+Route::middleware('auth:api')->post('/post', [PostController::class, 'store']);
+Route::middleware('auth:api')->get('/post', [PostController::class, 'index']);
+Route::middleware('auth:api')->post('/post/{id}', [PostController::class, 'show']);
+Route::middleware('auth:api')->put('/post/{id}', [PostController::class, 'update']);
+Route::middleware('auth:api')->delete('/post/{id}', [PostController::class, 'destroy']);

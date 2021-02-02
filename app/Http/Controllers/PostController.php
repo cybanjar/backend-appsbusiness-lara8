@@ -2,115 +2,97 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\PostResource;
-use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Post;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+   
     public function index()
     {
-        $posts = Post::paginate(10);
-        return PostResource::collection($posts);
+        $post = Post::all();
+        return response()->json($post);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+    
     public function store(Request $request)
     {
-        //  'nama', 'harga', 'deskripsi', 'kondisi', 'lokasi', 'kategori', 'photo'
-        $post = new Post();
-        $post->nama = $request->nama;
-        $post->harga = $request->harga;
-        $post->deskripsi = $request->deskripsi;
-        $post->kondisi = $request->kondisi;
-        $post->lokasi = $request->lokasi;
-        $post->photo = $request->photo;
-        if($post->save())
-        {
-            return new PostResource($post);
+        $validator = Validator::make($request->all(), [
+            'nama'      => 'required|string',
+            'harga'     => 'required|integer',
+            'deskripsi' => 'required|string',
+            'kondisi'   => 'in:baru, bekas',
+            'lokasi'    => 'required|string',
+            'photo'     => 'string',
+        ]);
+
+        if($validator->fails()) {
+            return response()->json($validator->errors(), 400);
         }
+
+        $data = $request->all();
+        $post = Post::create($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Successfully!',
+            'data'    => $post  
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
     public function show($id)
     {
-        //
-        $post = Post::findOrFail($id);
-        return new PostResource($post);
+        $post = Post::find($id);
+        return response()->json($post);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //  'nama', 'harga', 'deskripsi', 'kondisi', 'lokasi', 'kategori', 'photo'
-       
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+   
     public function update(Request $request, $id)
     {
-        $post = Post::findOrFail($id);
-        $post->nama = $request->nama;
-        $post->harga = $request->harga;
-        $post->deskripsi = $request->deskripsi;
-        $post->kondisi = $request->kondisi;
-        $post->lokasi = $request->lokasi;
-        $post->kategori = $request->kategori;
-        $post->photo = $request->photo;
-        if($post->save())
-        {
-            return new PostResource($post);
+        $post = Post::find($id);
+        if(!$post) {
+            return response()->json([
+                'message' => 'Post not found!'
+            ], 400);
         }
+
+        $validator = Validator::make($request->all(), [
+            'nama'      => 'required|string',
+            'harga'     => 'required|integer',
+            'deskripsi' => 'required|string',
+            'kondisi'   => 'in:baru, bekas',
+            'lokasi'    => 'required|string',
+            'photo'     => 'string',
+        ]);
+
+        $data = $request->all();
+        $post->fill($data);
+        $post->save();
+        
+        return response()->json([
+            'success'   => true,
+            'message'   => 'Successfully',
+            'data'      => $post
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
     public function destroy($id)
     {
-        $post = Post::findOrFail($id);
-        if($post->delete())
-        {
-            return new PostResource($post);
+        $post = Post::find($id);
+        if(!$post) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Post not found!'
+            ], 400);
         }
+
+        $post->delete();
+        return response()->json([
+            'message' => 'Post has been deleted!'
+        ], 200);
     }
 }
