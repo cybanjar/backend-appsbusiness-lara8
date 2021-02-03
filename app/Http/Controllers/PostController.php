@@ -48,7 +48,6 @@ class PostController extends Controller
         $post = Post::find($id);
         return response()->json($post);
     }
-
    
     public function update(Request $request, $id)
     {
@@ -78,7 +77,6 @@ class PostController extends Controller
             'data'      => $post
         ]);
     }
-
     
     public function destroy($id)
     {
